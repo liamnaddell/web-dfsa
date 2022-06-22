@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>The Scala.js Tutorial</title>
+    <script src="https://cdn.jsdelivr.net/npm/@hpcc-js/wasm/dist/index.min.js"></script>
+    <script>
+        var hpccWasm = window["@hpcc-js/wasm"];
+    </script>
+  </head>
+  <body>
+	  <input id='state-to-add' type="text" > 
+	  <span>final: </span> <input id='state-is-final' type="checkbox" > 
+	  <button onclick="web_add_state()">Add State</button>
+
+	  <input id='state-from' type="text" > 
+	  <input id='state-to-zero' type="text" > 
+	  <input id='state-to-one' type="text" > 
+	  <button onclick="web_add_transition()">Add Transition</button>
+	  <input id='string-to-validate' type="text" > 
+	  <button onclick="web_validate_string()">Validate String</button>
+
+	  <div id="placeholder"></div>
+	  <script src='./web3/renderGraph.js'></script>
+	  <script type="text/javascript" src="./target/scala-2.13/sjdfsa-fastopt/main.js"></script>
+  </body>
+</html>

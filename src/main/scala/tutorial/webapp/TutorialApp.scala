@@ -3,8 +3,17 @@ package tutorial.webapp
 import org.scalajs.dom
 import org.scalajs.dom.document
 import scala.scalajs.js.annotation.JSExportTopLevel
+import scala.scalajs.js.annotation.JSImport
+import scala.scalajs.js.annotation.JSGlobalScope
 import org.scalajs.dom.html
+import scala.scalajs.js.annotation.JSImport.Namespace
+import scala.scalajs.js
 
+@JSGlobalScope
+@js.native
+object RenderDot extends js.Object {
+  def renderDot(dot: String): Unit = js.native
+}
 
 trait BinDig
 case class Zero() extends BinDig
@@ -129,5 +138,16 @@ object TutorialApp {
   }
   def main(args: Array[String]): Unit = {
     appendPar(document.body,"Hello World");
+    RenderDot.renderDot("""
+digraph g{
+  rankdir=LR;
+  "1" -> "2" [label="0"]
+  "2" -> "2" [label="0"]
+  "2" -> "3" [label="1"]
+  "3" -> "4" [label="1"]
+  "4" -> "5" [label="1"]
+  "5" -> "6" [label="1"]
+}
+""")
   }
 }
