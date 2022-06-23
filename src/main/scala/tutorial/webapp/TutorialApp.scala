@@ -41,7 +41,12 @@ class Dfsa(var initial: Int, var current_state: Int, var states: Array[Int], var
     var dfsa2 = this;
     dfsa2.states = this.states.concat(Array(state));
     if (is_final == true) {
-      dfsa2.add_final_state(state);
+      println("adding final state");
+      dfsa2=dfsa2.add_final_state(state);
+    }
+    if (dfsa2.states.length == 1) {
+      dfsa2.initial = state;
+      dfsa2.current_state = state;
     }
     return dfsa2;
   }
@@ -89,20 +94,55 @@ class Dfsa(var initial: Int, var current_state: Int, var states: Array[Int], var
     print(final_dfsa)
     val cstate = final_dfsa.current_state;
     print(cstate)
-    return this.final_states.find((o => o == cstate)).nonEmpty;
+    return this.is_final(cstate);
+  }
+  def is_final(s: Int): Boolean = {
+    return this.final_states.contains(s);
+  }
+  def gen_dot(): String = {
+    var res = """
+digraph g{
+  rankdir=LR;
+"""
+    for (state <- this.states) {
+      //"1" [color="red"] only if final 
+      if (this.is_final(state)) {
+        val tocat0 = s"""   "$state" [color="red"]\n"""
+        res=res.concat(tocat0);
+      } else {
+        val tocat0 = s"""   "$state" [color="black"]\n"""
+        res=res.concat(tocat0);
+      }
+    }
+
+    for ((state,zero,one) <- this.transitions) {
+      //"1" -> "2" [label="0"]
+      val tocat0 = s"""   "$state" -> "$zero" [label=0]\n"""
+      val tocat1 = s"""   "$state" -> "$one" [label=1]\n"""
+      res=res.concat(tocat0);
+      res=res.concat(tocat1);
+    }
+    res=res.concat("}");
+    return res;
   }
 }
 
 object TutorialApp {
-  var dfsa: Dfsa = new Dfsa(1,1,Array(1),Array(1),Array());
+  var dfsa: Dfsa = new Dfsa(1,1,Array(),Array(),Array());
 
   @JSExportTopLevel("web_add_state")
   def web_add_state(): Unit = {
     val state_to_add: Int = document.getElementById("state-to-add").asInstanceOf[html.Input].value.toInt;
     val is_final: Boolean = document.getElementById("state-is-final").asInstanceOf[html.Input].checked;
 
+    println("is_final", is_final);
+
+    println(this.dfsa);
     this.dfsa = dfsa.add_state(state_to_add,is_final)
     println(this.dfsa);
+    val dot = this.dfsa.gen_dot();
+    println(dot);
+    RenderDot.renderDot(dot)
   }
   @JSExportTopLevel("web_add_transition")
   def web_add_transition(): Unit = {
@@ -111,6 +151,9 @@ object TutorialApp {
     val state_to_one: Int = document.getElementById("state-to-one").asInstanceOf[html.Input].value.toInt;
     this.dfsa = this.dfsa.add_transition((state_from,state_to_zero,state_to_one))
     println(this.dfsa)
+    val dot = this.dfsa.gen_dot();
+    println(dot);
+    RenderDot.renderDot(dot)
   }
   @JSExportTopLevel("web_validate_string")
   def web_validate_string(): Unit = {
@@ -137,17 +180,5 @@ object TutorialApp {
     targetNode.appendChild(parNode)
   }
   def main(args: Array[String]): Unit = {
-    appendPar(document.body,"Hello World");
-    RenderDot.renderDot("""
-digraph g{
-  rankdir=LR;
-  "1" -> "2" [label="0"]
-  "2" -> "2" [label="0"]
-  "2" -> "3" [label="1"]
-  "3" -> "4" [label="1"]
-  "4" -> "5" [label="1"]
-  "5" -> "6" [label="1"]
-}
-""")
   }
 }
