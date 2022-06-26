@@ -15,7 +15,7 @@ object RenderDot extends js.Object {
   def renderDot(dot: String): Unit = js.native
 }
 
-trait BinDig
+abstract class BinDig
 case class Zero() extends BinDig
 case class One() extends BinDig
 
@@ -23,41 +23,42 @@ case class BinStr(digs: Array[BinDig])
 
 
 
-class Dfsa(var initial: Int, var current_state: Int, var states: Array[Int], var final_states: Array[Int], var transitions: Array[(Int,Int,Int)]) {
+case class Dfsa(val initial: Int, val current_state: Int, val states: Array[Int], val final_states: Array[Int], val transitions: Array[(Int,Int,Int)]) {
   override def toString() : String = {
       return "initial: " + initial.toString() + " current_state: " + current_state.toString() + " states: " + states.mkString(" ") + " final_states: " + final_states.mkString(" ") + " transitions: " + transitions.mkString(" ");
   }
   def initial(i: Int) : Dfsa = {
-    val dfsa2 = this;
-    dfsa2.initial = i;
+    val dfsa2 = this.copy(initial=i);
     return dfsa2;
   }
   def set_current_state(new_state: Int) : Dfsa = {
-    var dfsa2 = this;
-    dfsa2.current_state = new_state;
+    var dfsa2 = this.copy(current_state=new_state);
     return dfsa2;
   }
   def add_state(state: Int,is_final: Boolean) : Dfsa = {
-    var dfsa2 = this;
-    dfsa2.states = this.states.concat(Array(state));
-    if (is_final == true) {
-      println("adding final state");
-      dfsa2=dfsa2.add_final_state(state);
+    val new_states = this.states.concat(Array(state));
+    val new_final_states = {
+      if (is_final == false) {
+        this.final_states;
+      } else {
+        this.final_states.concat(Array(state));
+      }
     }
-    if (dfsa2.states.length == 1) {
-      dfsa2.initial = state;
-      dfsa2.current_state = state;
+    val dfsa2 = { 
+      if (this.states.length == 0) {
+        this.copy(initial=state,current_state=state,states=new_states,final_states=new_final_states);
+      } else {
+        this.copy(states=new_states,final_states=new_final_states);
+      }
     }
     return dfsa2;
   }
   def add_final_state(fs: Int) : Dfsa = {
-    val dfsa2 = this;
-    dfsa2.final_states = dfsa2.final_states.concat(Array(fs));
+    val dfsa2 = this.copy(final_states = this.final_states.concat(Array(fs)));
     return dfsa2;
   }
   def add_transition(transitions: (Int,Int,Int)) : Dfsa = {
-    val dfsa2 = this;
-    dfsa2.transitions = this.transitions.concat(Array(transitions));
+    val dfsa2 = this.copy(transitions = this.transitions.concat(Array(transitions)));
     return dfsa2;
   }
   
@@ -67,8 +68,8 @@ class Dfsa(var initial: Int, var current_state: Int, var states: Array[Int], var
       return None;
     } else {
       dig match {
-        case Zero() => { return Some(all_tns(0)._1);}
-        case One() => { return Some(all_tns(0)._2);}
+        case Zero() => { return Some(all_tns(0)._2);}
+        case One() => { return Some(all_tns(0)._3);}
       }
     }
   }
@@ -109,6 +110,12 @@ digraph g{
       if (this.is_final(state)) {
         val tocat0 = s"""   "$state" [color="red"]\n"""
         res=res.concat(tocat0);
+      } else if (this.initial == state && !this.is_final(state)) {
+        val tocat0 = s"""   "$state" [color="yellow",label="ini: $state"]\n"""
+        res=res.concat(tocat0);
+      } else if (this.initial == state && this.is_final(state)) {
+        val tocat0 = s"""   "$state" [color="red",label="ini"]\n"""
+        res=res.concat(tocat0);
       } else {
         val tocat0 = s"""   "$state" [color="black"]\n"""
         res=res.concat(tocat0);
@@ -129,6 +136,16 @@ digraph g{
 
 object TutorialApp {
   var dfsa: Dfsa = new Dfsa(1,1,Array(),Array(),Array());
+  var num_calcs: Int = 0;
+
+  @JSExportTopLevel("web_reset_dfsa")
+  def web_reset_dfsa(): Unit = {
+    this.dfsa = new Dfsa(1,1,Array(),Array(),Array());
+    println(this.dfsa);
+    val dot = this.dfsa.gen_dot();
+    println(dot);
+    RenderDot.renderDot(dot)
+  }
 
   @JSExportTopLevel("web_add_state")
   def web_add_state(): Unit = {
@@ -167,17 +184,20 @@ object TutorialApp {
     };
     val binstr = new BinStr(string_to_validate.map(c_to_bindig).toArray);
     print(binstr.toString())
+    val num=this.num_calcs;
     if (dfsa.is_accepted(binstr)) {
-      appendPar(document.body,"Was accepted")
+      appendPar(f"$num: $string_to_validate was accepted")
     } else {
-      appendPar(document.body,"Was not accepted")
+      appendPar(f"$num: $string_to_validate was not accepted")
     }
 
   }
-  def appendPar(targetNode: dom.Node, text: String): Unit = {
+  def appendPar(text: String): Unit = {
+    val targetElement: html.Div = document.getElementById("results_displayer").asInstanceOf[html.Div];
+
     val parNode = document.createElement("p")
     parNode.textContent = text
-    targetNode.appendChild(parNode)
+    targetElement.appendChild(parNode)
   }
   def main(args: Array[String]): Unit = {
   }

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>The Scala.js Tutorial</title>
-    <script src="https://cdn.jsdelivr.net/npm/@hpcc-js/wasm/dist/index.min.js"></script>
+    <script src="./web3/node_modules/@hpcc-js/wasm/dist/index.min.js"></script>
     <script>
         var hpccWasm = window["@hpcc-js/wasm"];
     </script>
@@ -19,8 +19,10 @@
 	  <button onclick="web_add_transition()">Add Transition</button>
 	  <input id='string-to-validate' type="text" > 
 	  <button onclick="web_validate_string()">Validate String</button>
+	  <button onclick="web_reset_dfsa()">Reset Dfsa</button>
 
 	  <div id="placeholder"></div>
+	<div id='results_displayer' style="height:30px;border:1px solid #ccc;overflow:auto"></div>
 	  <script src='./web3/renderGraph.js'></script>
 	  <script type="text/javascript" src="./target/scala-2.13/sjdfsa-fastopt/main.js"></script>
   </body>
