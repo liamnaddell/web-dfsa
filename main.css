@@ -1,0 +1,8 @@
+#controls {
+	display:flex;
+}
+
+.control {
+	flex-direction:column;
+	display:flex;
+}
