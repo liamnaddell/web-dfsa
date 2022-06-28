@@ -40,32 +40,29 @@ case class Dfsa(val initial: Int, val current_state: Int, val states: Array[Int]
   override def toString() : String = {
       return "initial: " + initial.toString() + " current_state: " + current_state.toString() + " states: " + states.mkString(" ") + " final_states: " + final_states.mkString(" ") + " transitions: " + transitions.mkString(" ");
   }
-  def initial(i: Int) : Dfsa = {
+  def set_initial(i: Int) : Dfsa = {
     val dfsa2 = this.copy(initial=i);
-    return dfsa2;
-  }
-  def make_dead(): Dfsa = {
-    val dfsa2 = this.copy(dead=true);
     return dfsa2;
   }
   def set_current_state(new_state: Int) : Dfsa = {
     var dfsa2 = this.copy(current_state=new_state);
     return dfsa2;
   }
-  def add_state(state: Int,is_final: Boolean) : Dfsa = {
-    val new_states = this.states.concat(Array(state));
-    val new_final_states = {
-      if (is_final == false) {
-        this.final_states;
+  def make_dead(): Dfsa = {
+    val dfsa2 = this.copy(dead=true);
+    return dfsa2;
+  }
+  def toggle_final(state: Int): Dfsa = {
+    val dfsa2 = {
+      if (!this.is_final(state)) {
+       this.copy(final_states=this.final_states.concat(Array(state)));
       } else {
-        this.final_states.concat(Array(state));
-      }
-    }
-    val dfsa2 = { 
-      if (this.states.length == 0) {
-        this.copy(initial=state,current_state=state,states=new_states,final_states=new_final_states);
-      } else {
-        this.copy(states=new_states,final_states=new_final_states);
+        val fs = this.final_states;
+        val todel = this.final_states.indexOf(state);
+        val left = this.final_states.take(todel);
+        val right = left.drop(todel-1);
+
+        this.copy(final_states=right);
       }
     }
     return dfsa2;
@@ -74,9 +71,26 @@ case class Dfsa(val initial: Int, val current_state: Int, val states: Array[Int]
     val dfsa2 = this.copy(final_states = this.final_states.concat(Array(fs)));
     return dfsa2;
   }
+  def add_state(state:Int): Dfsa = {
+    val dfsa1 = {
+      if (this.states.length == 0) {
+        val m = this.set_initial(state)
+        m.set_current_state(state)
+      } else {
+        this
+      }
+    }
+    if (!dfsa1.states.contains(state)) {
+      return dfsa1.copy(states = dfsa1.states.concat(Array(state)));
+    } else {
+      return dfsa1;
+    }
+  }
   def add_transition(transitions: (Int,Int,BinDig)) : Dfsa = {
     val dfsa2 = this.copy(transitions = this.transitions.concat(Array(transitions)));
-    return dfsa2;
+    val dfsa3 = dfsa2.add_state(transitions._1)
+    val dfsa4 = dfsa3.add_state(transitions._2)
+    return dfsa4;
   }
   
   def find_transition(state: Int, dig: BinDig): Option[Int] = {
@@ -175,15 +189,13 @@ object TutorialApp {
     rerender_dfsa();
   }
 
-  @JSExportTopLevel("web_add_state")
-  def web_add_state(): Unit = {
-    val state_to_add: Int = document.getElementById("state-to-add").asInstanceOf[html.Input].value.toInt;
-    val is_final: Boolean = document.getElementById("state-is-final").asInstanceOf[html.Input].checked;
+  @JSExportTopLevel("web_toggle_final")
+  def web_toggle_final(): Unit = {
+    val state_to_add: Int = document.getElementById("state-to-toggle-final").asInstanceOf[html.Input].value.toInt;
 
-    this.dfsa = dfsa.add_state(state_to_add,is_final)
+    this.dfsa = dfsa.toggle_final(state_to_add);
     rerender_dfsa();
-    document.getElementById("state-to-add").asInstanceOf[html.Input].select();
-    document.getElementById("state-is-final").asInstanceOf[html.Input].checked = false;
+    document.getElementById("state-to-toggle-final").asInstanceOf[html.Input].select();
   }
   def handle_int_parse(s: String): Option[Int] = {
     val maybe_int:Option[Int] = Try(s.toInt).toOption
@@ -253,10 +265,7 @@ object TutorialApp {
   def appendPar(text: String): Unit = {
     val targetElement: html.Div = document.getElementById("results_displayer").asInstanceOf[html.Div];
 
-    val parNode = document.createElement("span").asInstanceOf[html.Span]
-    parNode.style.display = "block";
-    parNode.textContent=text
-    targetElement.appendChild(parNode)
+    targetElement.innerHTML = f"""<span style=\"display:block\">$text</span>"""
   }
   def main(args: Array[String]): Unit = {
   }

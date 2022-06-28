@@ -12,17 +12,16 @@
   <body>
 	  <div id='controls'>
 		  <div class='control'>
-			  <input id='state-to-add' type="text" > 
-			  <span>final: </span> <input id='state-is-final' type="checkbox" > 
-			  <button onclick="web_add_state()">Add State</button>
-		  </div>
-
-		  <div class='control'>
 			  <input id='state-from' type="text" > 
 			  <input id='state-to-zero' type="text" > 
 			  <input id='state-to-one' type="text" > 
 			  <button onclick="web_add_transition()">Add Transition</button>
 		  </div>
+		  <div class='control'>
+			  <input id='state-to-toggle-final' type="text" > 
+			  <button onclick="web_toggle_final()">Toggle Final</button>
+		  </div>
+
 		  <div class='control'>
 			  <input id='string-to-validate' type="text" > 
 			  <button onclick="web_validate_string()">Validate String</button>
@@ -33,7 +32,7 @@
 	  </div> 
 
 	  <div id="placeholder"></div>
-	<div id='results_displayer' style="height:30px;border:1px solid #ccc;overflow:scroll"></div>
+	<div id='results_displayer' style="border:1px solid #ccc;overflow:scroll"></div>
 	  <script src='./web3/renderGraph.js'></script>
 	  <script type="text/javascript" src="./target/scala-2.13/sjdfsa-fastopt/main.js"></script>
   </body>
